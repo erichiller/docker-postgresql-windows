@@ -1,8 +1,5 @@
-echo off
+@echo off
 SETLOCAL EnableDelayedExpansion
-
-echo PGDATA is %PGDATA%
-echo POSTGRES_USER is %POSTGRES_USER%
 
 :: Batch file has no concept of a function, only goto
 goto :start
@@ -58,13 +55,12 @@ if NOT exist %PGDATA% (
 )
 
 :: Ensure the directories have correct permissions
-echo Setting permissions on %PGDATA% for %USERNAME%
 call icacls "%PGDATA%" /grant "%USERNAME%":(OI)(CI)F > NUL
 
 :: look specifically for PG_VERSION, as it is expected in the DB dir
 if NOT exist "%PGDATA%\PG_VERSION" (
 
-    call :file_env POSTGRES_USER postgres
+    call :file_env POSTGRES_USER, postgres
     call :file_env POSTGRES_PASSWORD
     call :file_env POSTGRES_INITDB_ARGS
 
@@ -99,20 +95,12 @@ if NOT exist "%PGDATA%\PG_VERSION" (
         set authMethod=trust
         echo authMethod: !authMethod!
     )
-    echo Setting pg_hba.conf...
     echo.>> "%PGDATA%\pg_hba.conf"
     echo host all all all !authMethod!>> "%PGDATA%\pg_hba.conf"
-    echo ... Complete pg_hba.conf
 
-    REM echo "Initial service start via pg_ctl..."
-    REM echo PGDATA is %PGDATA%
-    REM echo POSTGRES_USER is %POSTGRES_USER%
     :: internal start of server in order to allow set-up using psql-client
     :: does not listen on external TCP/IP and waits until start finishes
-	REM call pg_ctl -U "!POSTGRES_USER!" -D "%PGDATA%" -w start
-	REM call pg_ctl --help
-	REM call pg_ctl -U postgres -D c:\pgsql\data -w start
-    REM echo "... Complete service start via pg_ctl"
+	call pg_ctl -U "!POSTGRES_USER!" -D "%PGDATA%" -w start
 
     call :file_env POSTGRES_DB !POSTGRES_USER!
 

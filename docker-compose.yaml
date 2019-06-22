@@ -1,0 +1,44 @@
+version: '3'
+services:
+  postgres:
+    # restart: always
+    restart: "no"
+    image: ehiller/postgresql
+    build: .
+    environment:
+      - POSTGRES_PASSWORD=RrF1kj4cNjxwnJ
+    # ports:
+    # - 5432
+    # volumes:
+    #     - postgres_database:C:/sql
+    hostname: pg
+
+    # volumes:
+    #   - postgres_database:C:/sql:rw
+      # - S:/virtual_machines/containers/postgresql:C:/sql:RW
+
+  #   links:
+  #   - pgadmin4
+  # pgadmin4:
+  #   image: redis
+# networks:
+#   default:
+#     driver: transparent
+#     driver_opts: 
+#       com.docker.network.windowsshim.interface: "Ethernet 2"
+      # gateway: ${NETWORK_GATEWAY}
+    # enable_ipv6: false
+    # ipam:
+    #   config:
+    #   - subnet: ${NETWORK_V4}
+networks:
+ default:
+  external:
+   name: "External on Dedicated I219"
+
+## Created first with 
+##   docker volume create --name=postgres_database
+## May not be necessary to do this (or make it external)
+# volumes:
+  # postgres_database:
+        # external: true
