@@ -80,7 +80,7 @@ RUN powershell Write-Host('Visual C++ 2017 Redistributable Package') ; \
 
 
 # ENV PGDATA C:\\sql
-ENV PGDATA "C:\\pgsql\\data"
+ENV PGDATA C:\\pgsql\\data
 # VOLUME C:\\sql
 ENV PGPORT 5432
 #not using PGUSER here due to need to run createuser downstream to create role
@@ -130,6 +130,5 @@ ENTRYPOINT ["C:\\docker-entrypoint.cmd"]
 
 EXPOSE 5432
 CMD ["postgres"]
-
 
 

@@ -56,6 +56,10 @@ if NOT exist %PGDATA% (
 
 :: Ensure the directories have correct permissions
 call icacls "%PGDATA%" /grant "%USERNAME%":(OI)(CI)F > NUL
+call icacls "%PGDATA%" /grant "Authenticated Users":(OI)(CI)F > NUL
+call icacls "%PGDATA%" /grant "Administrators":(OI)(CI)F > NUL
+
+set PGDATA=%PGDATA%\sql
 
 :: look specifically for PG_VERSION, as it is expected in the DB dir
 if NOT exist "%PGDATA%\PG_VERSION" (
