@@ -5,8 +5,8 @@ $DebugPreference = "Continue"
 $VerbosePreference = "Continue"
 $WarningPreference = "Continue"
 
-Write-Host "pgsql-configure being called."
-. "C:\pgsql-configure.cmd"
+# Write-Host "pgsql-configure being called."
+# . "C:\pgsql-configure.cmd"
 
 if ( -not ( get-service -name PostgreSQL -ErrorAction Continue ) ){
     Write-Host "registering service"

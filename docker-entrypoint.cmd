@@ -129,6 +129,8 @@ if NOT exist "%PGDATA%\PG_VERSION" (
 
     pg_ctl -U "!POSTGRES_USER!" -D "%PGDATA%" -m fast -w stop
 
+    pg_ctl register
+
     echo PostgreSQL init process complete; ready for start up.
 )
 

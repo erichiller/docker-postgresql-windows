@@ -126,9 +126,10 @@ RUN setx /M PATH "C:\\pgsql\\bin;%PATH%"
 # CMD powershell /install/start detached %PGDATA% %PGUSERVAR%
 
 COPY docker-entrypoint.cmd /
+COPY docker-start.ps1 /
 ENTRYPOINT ["C:\\docker-entrypoint.cmd"]
 
 EXPOSE 5432
-CMD ["postgres"]
+CMD ["powershell", "C:\\docker-start.ps1"]
 
 
