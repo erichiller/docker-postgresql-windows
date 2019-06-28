@@ -15,7 +15,6 @@ $WarningPreference = "Continue"
 
 Write-Host "running start.ps1 with`n`tattachmode=$attachmode `n`t`tand`n`tsqldata=$sqldata `n`t`tand `n`tpguser=$pguser"
 
-$pgHbaLdapString = "`nhost    all             all             0.0.0.0/0               ldap    ldapserver=deepthought.hiller.pro ldapbasedn=`"CN=Users,DC=hiller,DC=pro`" ldapbinddn=`"cn=$pguser,cn=Users,dc=hiller,dc=pro`" ldapbindpasswd=`"$env:POSTGRES_PASSWORD`" ldapsearchattribute=`"sAMAccountName`""
 
 if ( -not ( (test-path (join-path $env:PGDATA "pg_hba.conf")) -and (test-path (join-path $env:PGDATA "postgresql.conf")) -and (test-path (join-path $env:PGDATA "PG_VERSION")) ) ){
   # copy data over
@@ -31,6 +30,10 @@ if ( -not ( (test-path (join-path $env:PGDATA "pg_hba.conf")) -and (test-path (j
   # . /install/init-config-start-service $env:PGDATA $pguser
   Write-Host "adding to $(join-path $env:PGDATA 'pg_hba.conf'): $pgHbaLdapString"
   Add-Content (join-path $env:PGDATA "pg_hba.conf") $pgHbaLdapString
+
+
+
+  
 } else {
   Write-Host "pg_hba.conf already configured" 
 }

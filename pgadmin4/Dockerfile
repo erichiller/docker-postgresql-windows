@@ -1,68 +1,19 @@
 ####
 #### Download and prepare PostgreSQL for Windows
 ####
-# FROM mcr.microsoft.com/windows/servercore
 FROM microsoft/windowsservercore
 
+LABEL maintainer="eric@hiller.pro"
 
-ENV PGDATA C:\\sql
-ENV PGPORT 5432
-#not using PGUSER here due to need to run createuser downstream to create role
-# ENV PGUSER postgres
-ENV PGUSERVAR postgres
-# ENV POSTGRES_PASSWORD postgres
-ENV POSTGRES_PASSWORD postgres
-
-# VOLUME "C:\sql"
-
-# RUN mkdir $PGDATA
-
+SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
 
 # Set the variables for EnterpriseDB
-ENV EDB_VER 11.3-4
+ENV EDB_VER 11.4-1
 ENV EDB_REPO https://get.enterprisedb.com/postgresql
 
-
-# https://github.com/jupyter/docker-stacks
-# https://hub.docker.com/_/python/
-
-# .\jupyter-lab.exe --help-all
-# https://jupyterlab.readthedocs.io/en/stable/index.html
-
-# https://docs.docker.com/engine/reference/commandline/cli/
-
-# Build with docker image build . -t ehiller/jupyterlab-windows2016-python3.7.2:latest
-# run with docker run -d -p 8888:8888 --name jupyterlab --restart always -v S:\virtual_machines\containers\jupyterlab:C:\Data ehiller/jupyterlab-windows2016-python3.7.2:latest
-
-
-# docker run -it -p 5432:5432 ehiller/postgresql "powershell"
-
-
-
-
-
-##### Use PowerShell for the installation
-# SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
-
-## https://get.enterprisedb.com/postgresql/postgresql-11.3-4-windows-x64.exe
-# msiexec.exe /l* /quiet /i .\postgresql-11.3-4-windows-x64.exe 
-### Download EnterpriseDB and remove cruft
-# RUN [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 ; \
-#     $URL1 = $('{0}/postgresql-11.3-4-windows-x64.exe' -f $env:EDB_REPO,$env:EDB_VER) ; \
-#     Invoke-WebRequest -Uri $URL1 -OutFile 'C:\\EnterpriseDB.exe' ;
-
-# RUN msiexec.exe /l* /quiet /i C:\\EnterpriseDB.exe ;
-# RUN Get-ChildItem C:\\ | Write-Output ;
-# RUN Get-ChildItem 'C:\\Program Files\\' | Write-Output ;
-# RUN Get-ChildItem 'C:\\Program Files (x86)\\' | Write-Output ;
-
-# https://www.enterprisedb.com/download-postgresql-binaries
-# http://get.enterprisedb.com/postgresql/postgresql-11.3-4-windows-x64-binaries.zip
-
 RUN powershell [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 ; Invoke-WebRequest -Uri $('{0}/postgresql-{1}-windows-x64-binaries.zip' -f $env:EDB_REPO,$env:EDB_VER) -OutFile 'C:\\EnterpriseDB.zip'
-RUN powershell Expand-Archive 'C:\\EnterpriseDB.zip'-Force -DestinationPath /postgresql
+RUN powershell Expand-Archive 'C:\\EnterpriseDB.zip'-Force -DestinationPath 'C:\\'
 RUN powershell Remove-Item -Path 'C:\\EnterpriseDB.zip'
-
 
 # Install correct Visual C++ Redistributable Package
 RUN powershell Write-Host('Visual C++ 2017 Redistributable Package') ; \
@@ -73,22 +24,152 @@ RUN powershell Write-Host('Visual C++ 2017 Redistributable Package') ; \
                 '/install', \
                 '/passive', \
                 '/norestart' \
-            )
+            ); \
+        Copy-Item 'C:\\windows\\system32\\vcruntime140.dll' -Destination 'C:\\pgsql\\bin\\vcruntime140.dll' ;
+
+ENV PGDATA C:\\pgsql\\data
+ENV PGPORT 5432
+ENV POSTGRES_PASSWORD postgres
+ENV POSTGRES_USER postgres
+
+RUN powershell [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 ; Invoke-WebRequest -Uri 'https://github.com/vim/vim-win32-installer/releases/download/v8.1.1568/gvim_8.1.1568_x64.zip' -OutFile 'C:\\vim.zip'
+RUN powershell Expand-Archive 'C:\\vim.zip'-Force -DestinationPath /vim
+
+RUN setx /M PATH "C:\\pgsql\\bin;C:\\vim\\vim\\vim81;%PATH%"
+
+# COPY docker-entrypoint.cmd /
+# COPY docker-run.ps1 /
+# COPY docker-entrypoint-initdb.d/ /docker-entrypoint-initdb.d/
+# ENTRYPOINT ["C:\\docker-entrypoint.cmd"]
 
 
-# RUN powershell [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 ; Invoke-WebRequest -Uri 'https://github.com/vim/vim-win32-installer/releases/download/v8.1.1568/gvim_8.1.1568_x64.zip' -OutFile 'C:\\vim.zip'
-# RUN powershell Expand-Archive 'C:\\vim.zip'-Force -DestinationPath /vim
 
-# copy dependent script(s)
-COPY . /install
 
-WORKDIR /postgresql/pgsql/bin
 
-RUN mkdir C:/sql
-VOLUME C:/sql
 
-# init postgresql db cluster, config and create and start service
-RUN powershell /install/init-config-start-service %PGDATA% %PGUSERVAR%
 
-# start postgreSQL using the designated data dir
-CMD powershell /install/start detached %PGDATA% %PGUSERVAR%
+
+# SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
+
+ENV PYTHON_VERSION 3.7.3
+ENV PYTHON_RELEASE 3.7.3
+
+RUN powershell $url = ('https://www.python.org/ftp/python/{0}/python-{1}-amd64.exe' -f $env:PYTHON_RELEASE, $env:PYTHON_VERSION); \
+	Write-Host ('Downloading {0} ...' -f $url); \
+	[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
+	Invoke-WebRequest -Uri $url -OutFile 'python.exe'; \
+	\
+	Write-Host 'Installing ...'; \
+# https://docs.python.org/3.5/using/windows.html#installing-without-ui
+	Start-Process python.exe -Wait \
+		-ArgumentList @( \
+			'/quiet', \
+			'InstallAllUsers=1', \
+			'TargetDir=C:\Python', \
+			'PrependPath=1', \
+			'Shortcuts=0', \
+			'Include_doc=0', \
+			'Include_pip=0', \
+			'Include_test=0' \
+		); \
+	\
+# the installer updated PATH, so we should refresh our local value
+	$env:PATH = [Environment]::GetEnvironmentVariable('PATH', [EnvironmentVariableTarget]::Machine); \
+	\
+	Write-Host 'Verifying install ...'; \
+	Write-Host '  python --version'; python --version; \
+	\
+	Write-Host 'Removing ...'; \
+	Remove-Item python.exe -Force; \
+	\
+	Write-Host 'Complete.';
+
+# if this is called "PIP_VERSION", pip explodes with "ValueError: invalid truth value '<VERSION>'"
+ENV PYTHON_PIP_VERSION 19.1.1
+
+RUN powershell Write-Host ('Installing pip=={0} ...' -f $env:PYTHON_PIP_VERSION); \
+	[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
+	Invoke-WebRequest -Uri 'https://bootstrap.pypa.io/get-pip.py' -OutFile 'get-pip.py'; \
+	python get-pip.py \
+		--disable-pip-version-check \
+		--no-cache-dir \
+		('pip=={0}' -f $env:PYTHON_PIP_VERSION) \
+	; \
+	Remove-Item get-pip.py -Force; \
+	\
+	Write-Host 'Verifying pip install ...'; \
+	pip --version; \
+	\
+	Write-Host 'Complete.';
+
+# This is the email address used when setting up the initial administrator account to login to pgAdmin. This variable is required and must be set at launch time.
+ENV PGADMIN_DEFAULT_EMAIL ""
+
+# This is the password used when setting up the initial administrator account to login to pgAdmin. This variable is required and must be set at launch time.
+ENV PGADMIN_DEFAULT_PASSWORD postgres
+
+# Set to True or False
+ENV PGADMIN_ENABLE_TLS False
+
+ENV PGADMIN_LISTEN_PORT 80
+
+ENV PGADMIN_LISTEN_ADDRESS 0.0.0.0
+
+# Adjust the number of threads the server uses to handle incoming requests. This should typically be left as-is, except in highly loaded systems where it may be increased.
+ENV THREADS 25
+
+ENV HOSTNAME pgadmin4.local
+
+
+RUN powershell -Command \
+    Write-Information 'Install apache web server...' ; \
+	$ErrorActionPreference = 'Stop'; \
+	[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
+	Invoke-WebRequest -Method Get -Uri https://home.apache.org/~steffenal/VC14/binaries/httpd-2.4.38-win64-VC14.zip -OutFile c:\apache.zip ; \
+	Expand-Archive -Path c:\apache.zip -DestinationPath c:\ ; \
+	Remove-Item c:\apache.zip -Force
+
+RUN powershell -Command \
+    Write-Information 'Install VC Redist for apache web server...' ; \
+	$ErrorActionPreference = 'Stop'; \
+	[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
+	Invoke-WebRequest -Method Get -Uri 'https://download.microsoft.com/download/9/3/F/93FCF1E7-E6A4-478B-96E7-D4B285925B00/vc_redist.x64.exe' -OutFile c:\vc_redist.x64.exe ; \
+	start-Process c:\vc_redist.x64.exe -ArgumentList '/quiet' -Wait ; \
+	Remove-Item c:\vc_redist.x64.exe -Force
+
+
+RUN powershell Invoke-WebRequest 'http://download.microsoft.com/download/5/f/7/5f7acaeb-8363-451f-9425-68a90f98b238/visualcppbuildtools_full.exe' -OutFile 'visualcppbuildtools_full.exe' -UseBasicParsing ; \
+    Start-Process .\visualcppbuildtools_full.exe -ArgumentList '/NoRestart /S' -Wait ; \
+    Remove-Item visualcppbuildtools_full.exe
+
+RUN powershell Write-Host 'Configuring environment'; \
+	pushd 'C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC' ; \
+	cmd /c 'vcvarsall.bat amd64&set' | foreach { \
+    if ($_ -match '=') { \
+      $v = $_.split('='); \
+      [Environment]::SetEnvironmentVariable($v[0], $v[1], [EnvironmentVariableTarget]::Machine); \
+    } \
+  } ; \
+	popd
+
+WORKDIR /code
+
+RUN powershell -Command \
+    pip install mod-wsgi ; \
+    Add-Content -Path C:\Apache24\conf\httpd.conf -Value (mod_wsgi-express module-config) ;
+    
+# RUN powershell -Command \
+#     pip install https://download.lfd.uci.edu/pythonlibs/t4jqbe6o/mod_wsgi-4.6.7+ap24vc15-cp37-cp37m-win_amd64.whl ; \
+#     Add-Content -Path C:\Apache24\conf\httpd.conf -Value (mod_wsgi-express module-config) ;
+    
+
+WORKDIR /Apache24/bin
+
+
+COPY start-pgadmin4.ps1 /
+
+EXPOSE $PGADMIN_LISTEN_PORT
+# CMD ["powershell", "C:\\docker-start.ps1"]
+CMD ["powershell", "C:\\start-pgadmin4.ps1"]
+
+

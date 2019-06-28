@@ -82,25 +82,33 @@ if NOT exist "%PGDATA%\PG_VERSION" (
         call del "C:\.pgpass"
     )
 
-    if NOT [!POSTGRES_PASSWORD!] == [] (
-        set authMethod=md5
-        echo authMethod: !authMethod!
+    IF NOT DEFINED LDAP_SERVER (
+        if NOT [!POSTGRES_PASSWORD!] == [] (
+            set authMethod=md5
+            echo authMethod: !authMethod!
+        ) else (
+            echo ****************************************************
+            echo WARNING: No password has been set for the database.
+            echo          This will allow anyone with access to the
+            echo          Postgres port to access your database. In
+            echo          Docker's default configuration, this is
+            echo          effectively any other container on the same
+            echo          system.
+            echo          Use "-e POSTGRES_PASSWORD=password" to set
+            echo          it in "docker run".
+            echo ****************************************************
+            set authMethod=trust
+            echo authMethod: !authMethod!
+        )
+        echo.>> "%PGDATA%\pg_hba.conf"
+        echo host all all all !authMethod!>> "%PGDATA%\pg_hba.conf"
     ) else (
-        echo ****************************************************
-        echo WARNING: No password has been set for the database.
-        echo          This will allow anyone with access to the
-        echo          Postgres port to access your database. In
-        echo          Docker's default configuration, this is
-        echo          effectively any other container on the same
-        echo          system.
-        echo          Use "-e POSTGRES_PASSWORD=password" to set
-        echo          it in "docker run".
-        echo ****************************************************
-        set authMethod=trust
-        echo authMethod: !authMethod!
+        
+        echo host    all             all             samehost                trust >> "%PGDATA%\pg_hba.conf"
+        echo host    all             all             0.0.0.0/0               ldap    ldapserver=%LDAP_SERVER% ldapbasedn="%LDAP_BASE_DN%" ldapbinddn="cn=%POSTGRES_USER%,%LDAP_BASE_DN%" ldapbindpasswd="%POSTGRES_PASSWORD%" ldapsearchattribute="sAMAccountName" >> "%PGDATA%\pg_hba.conf"
     )
-    echo.>> "%PGDATA%\pg_hba.conf"
-    echo host all all all !authMethod!>> "%PGDATA%\pg_hba.conf"
+
+    echo listen_addresses = '*' >> "%PGDATA%\postgresql.conf"
 
     :: internal start of server in order to allow set-up using psql-client
     :: does not listen on external TCP/IP and waits until start finishes
@@ -136,3 +144,10 @@ if NOT exist "%PGDATA%\PG_VERSION" (
 
 :: start the database
 call %*
+
+REM powershell "if ( (test-path (join-path $env:PGDATA 'postgresql.conf')) -and ( -not ( (get-content (join-path $env:PGDATA 'postgresql.conf')) -match ""listen_addresses = '*'"" ) ) ) { add-content (join-path $sqldata 'postgresql.conf') ""`nlisten_addresses = '*'"" }"
+REM powershell "add-content (join-path $env:PGDATA ""postgresql.conf"") ""`n"" ; "
+
+
+REM call powershell "Start-Service PostgreSQL ; Get-EventLog -LogName System -After (Get-Date).AddHours(-1) | Format-List ; $idx = (get-eventlog -LogName System -Newest 1).Index ; while($true){ start-sleep -Seconds 1 ; $idx2 = (Get-EventLog -LogName System -newest 1).index ; get-eventlog -logname system -newest ($idx2 - $idx) | sort index | Format-List ; $idx = $idx2 ; } ;"
+REM call powershell Start-Service PostgreSQL ; Get-EventLog -LogName System -After (Get-Date).AddHours(-1) | Format-List ; $idx = (get-eventlog -LogName System -Newest 1).Index ; while($true){ start-sleep -Seconds 1 ; $idx2 = (Get-EventLog -LogName System -newest 1).index ; get-eventlog -logname system -newest ($idx2 - $idx) | sort index | Format-List ; $idx = $idx2 ; } ;

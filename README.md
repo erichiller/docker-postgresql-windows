@@ -1,7 +1,6 @@
-Create additional users (must be made in postgres before they will be looked up in LDAP for their password)
+# Dockerized PostgreSQL for Windows (Server 2016)
 
 
-```sql
-CREATE USER eric;
-ALTER USER eric SUPERUSER;
-```
+## Running additional scripts at first run
+
+Any `*.sql` or `*.cmd` files will be run in the appropriate context if placed within the `docker-entrypoint-initdb.d/` folder.
