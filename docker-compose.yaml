@@ -1,18 +1,13 @@
 version: '3.6'
 services:
   postgres:
-    # restart: always
-    restart: "no"
+    restart: always
     image: ehiller/postgresql
     build:
       context: .
       labels:
         - "pro.hiller.description=PostgreSQL on Windows with Volume; works with Windows Server 2016"
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=RrF1kj4cNjxwnJ
-      - LDAP_BASE_DN=CN=Users,DC=hiller,DC=pro
-      - LDAP_SERVER=deepthought.hiller.pro
+    env_file: ./env/postgres.env
     ports:
       - 5432:5432
     volumes:
@@ -23,10 +18,20 @@ services:
     #   - postgres_database:C:/sql:rw
       # - S:/virtual_machines/containers/postgresql:C:/sql:RW
 
-  #   links:
-  #   - pgadmin4
-  # pgadmin4:
-  #   image: redis
+    # links:
+    # - pgadmin4
+  pgadmin4:
+    image: ehiller/pgadmin4
+    build:
+      context: ./pgadmin4
+      labels:
+        - "pro.hiller.description=pgAdmin 4 on Windows; works with Windows Server 2016"
+    volumes:
+      - pgadmin4:C:\data
+    ports:
+      - 8081:80
+    env_file: .env
+
 # networks:
   # default:
     # driver: transparent
@@ -48,4 +53,5 @@ networks:
 ## May not be necessary to do this (or make it external)
 volumes:
   postgres_database:
+  pgadmin4:
         # external: true

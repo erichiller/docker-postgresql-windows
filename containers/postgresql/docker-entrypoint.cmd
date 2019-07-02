@@ -137,17 +137,13 @@ if NOT exist "%PGDATA%\PG_VERSION" (
 
     pg_ctl -U "!POSTGRES_USER!" -D "%PGDATA%" -m fast -w stop
 
-    pg_ctl register
-
     echo PostgreSQL init process complete; ready for start up.
 )
+sc query PostgreSQL > NUL
+IF ERRORLEVEL 1060 ( 
+    ECHO registering PostgreSQL Service
+    pg_ctl register
+) ELSE ( ECHO PostgreSQL Service is already registered )
 
 :: start the database
 call %*
-
-REM powershell "if ( (test-path (join-path $env:PGDATA 'postgresql.conf')) -and ( -not ( (get-content (join-path $env:PGDATA 'postgresql.conf')) -match ""listen_addresses = '*'"" ) ) ) { add-content (join-path $sqldata 'postgresql.conf') ""`nlisten_addresses = '*'"" }"
-REM powershell "add-content (join-path $env:PGDATA ""postgresql.conf"") ""`n"" ; "
-
-
-REM call powershell "Start-Service PostgreSQL ; Get-EventLog -LogName System -After (Get-Date).AddHours(-1) | Format-List ; $idx = (get-eventlog -LogName System -Newest 1).Index ; while($true){ start-sleep -Seconds 1 ; $idx2 = (Get-EventLog -LogName System -newest 1).index ; get-eventlog -logname system -newest ($idx2 - $idx) | sort index | Format-List ; $idx = $idx2 ; } ;"
-REM call powershell Start-Service PostgreSQL ; Get-EventLog -LogName System -After (Get-Date).AddHours(-1) | Format-List ; $idx = (get-eventlog -LogName System -Newest 1).Index ; while($true){ start-sleep -Seconds 1 ; $idx2 = (Get-EventLog -LogName System -newest 1).index ; get-eventlog -logname system -newest ($idx2 - $idx) | sort index | Format-List ; $idx = $idx2 ; } ;
