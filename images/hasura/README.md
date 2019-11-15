@@ -1,0 +1,1 @@
+docker container run --name hasura-graphql-engine --hostname "hasura" -p 8900 -e HASURA_GRAPHQL_SERVER_PORT=80 -e HASURA_GRAPHQL_ENABLE_CONSOLE=true -e HASURA_GRAPHQL_DATABASE_URL=deepthought.hiller.pro hasura/graphql-engine

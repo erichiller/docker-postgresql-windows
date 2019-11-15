@@ -59,7 +59,7 @@ call icacls "%PGDATA%" /grant "%USERNAME%":(OI)(CI)F > NUL
 call icacls "%PGDATA%" /grant "Authenticated Users":(OI)(CI)F > NUL
 call icacls "%PGDATA%" /grant "Administrators":(OI)(CI)F > NUL
 
-set PGDATA=%PGDATA%\sql
+REM set PGDATA=%PGDATA%\sql
 
 :: look specifically for PG_VERSION, as it is expected in the DB dir
 if NOT exist "%PGDATA%\PG_VERSION" (
@@ -105,7 +105,7 @@ if NOT exist "%PGDATA%\PG_VERSION" (
     ) else (
         
         echo host    all             all             samehost                trust >> "%PGDATA%\pg_hba.conf"
-        echo host    all             all             0.0.0.0/0               ldap    ldapserver=%LDAP_SERVER% ldapbasedn="%LDAP_BASE_DN%" ldapbinddn="cn=%POSTGRES_USER%,%LDAP_BASE_DN%" ldapbindpasswd="%POSTGRES_PASSWORD%" ldapsearchattribute="sAMAccountName" >> "%PGDATA%\pg_hba.conf"
+        echo host    all             all             0.0.0.0/0               ldap    ldapserver=%LDAP_SERVER% ldapbasedn="%LDAP_SEARCH_BASE_DN%" ldapbinddn="cn=%POSTGRES_USER%,%LDAP_BIND_BASE_DN%" ldapbindpasswd="%POSTGRES_PASSWORD%" ldapsearchattribute="sAMAccountName" >> "%PGDATA%\pg_hba.conf"
     )
 
     echo listen_addresses = '*' >> "%PGDATA%\postgresql.conf"
@@ -128,6 +128,11 @@ if NOT exist "%PGDATA%\PG_VERSION" (
     for %%f in (C:\docker-entrypoint-initdb.d\*.cmd) do (
         echo cmd: running %%f
         call "%%f"
+    )
+    :: Execute any powershell scripts for this new DB
+    for %%f in (C:\docker-entrypoint-initdb.d\*.ps1) do (
+        echo cmd: running %%f
+        call powershell -Command "%%f"
     )
     :: Execute any SQL scripts for this new DB
     for %%f in (C:\docker-entrypoint-initdb.d\*.sql) do (

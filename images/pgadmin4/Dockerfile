@@ -1,14 +1,15 @@
 ####
 #### Download and prepare PostgreSQL for Windows
 ####
-FROM microsoft/windowsservercore
+FROM mcr.microsoft.com/windows/servercore:ltsc2019
 
 LABEL maintainer="eric@hiller.pro"
 
 SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
 
 # Set the variables for EnterpriseDB
-ENV EDB_VER 11.4-1
+# ENV EDB_VER 11.4-1
+ENV EDB_VER 11.5-1
 ENV EDB_REPO https://get.enterprisedb.com/postgresql
 
 RUN [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 ; Invoke-WebRequest -Uri $('{0}/postgresql-{1}-windows-x64-binaries.zip' -f $env:EDB_REPO,$env:EDB_VER) -OutFile 'C:\\EnterpriseDB.zip'
@@ -83,7 +84,7 @@ RUN $url = ('https://www.python.org/ftp/python/{0}/python-{1}-amd64.exe' -f $env
 	Write-Host 'Complete.';
 
 # if this is called "PIP_VERSION", pip explodes with "ValueError: invalid truth value '<VERSION>'"
-ENV PYTHON_PIP_VERSION 19.1.1
+ENV PYTHON_PIP_VERSION 19.2.3
 
 RUN Write-Host ('Installing pip=={0} ...' -f $env:PYTHON_PIP_VERSION); \
 	[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
@@ -171,8 +172,7 @@ ENV PGADMIN_SERVER_JSON_FILE C:/data/pgadmin4/servers.json
 
 # RUN mkdir $env:PGADMIN_DATA_DIR
 
-# RUN pip install flask flask_babelex 
-# RUN pip install virtualenv virtualenvwrapper
+RUN pip install flask flask_login flask_babelex virtualenv virtualenvwrapper
 
 
 COPY start-pgadmin4.ps1 /

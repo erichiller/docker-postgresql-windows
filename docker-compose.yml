@@ -4,7 +4,7 @@ services:
     restart: always
     image: ehiller/postgresql
     build:
-      context: .
+      context: ./images/postgresql
       labels:
         - "pro.hiller.description=PostgreSQL on Windows with Volume; works with Windows Server 2016"
     env_file: ./env/postgres.env
@@ -12,8 +12,11 @@ services:
       - 5432:5432
     volumes:
       - postgres_database:C:\pgsql\data
+      # - S:\virtual_machines\containers\postgres:C:\pgsql\data
     hostname: pg
-
+    mac_address: "4E:00:00:00:00:20"
+    # storage_opt:
+    #   size: '125GB'
     # volumes:
     #   - postgres_database:C:/sql:rw
       # - S:/virtual_machines/containers/postgresql:C:/sql:RW
@@ -21,16 +24,20 @@ services:
     # links:
     # - pgadmin4
   pgadmin4:
+    restart: always
     image: ehiller/pgadmin4
     build:
-      context: ./pgadmin4
+      context: ./images/pgadmin4
       labels:
         - "pro.hiller.description=pgAdmin 4 on Windows; works with Windows Server 2016"
     volumes:
       - pgadmin4:C:\data
     ports:
-      - 8081:80
-    env_file: .env
+      - 80
+      # - 8081:80
+    mac_address: "4E:00:00:00:00:21"
+    hostname: pgadmin
+    env_file: ./env/pgadmin4.env
 
 # networks:
   # default:
@@ -45,8 +52,8 @@ services:
 networks:
  default:
   external:
-    name: "nat"
-  #  name: "External on Dedicated I219"
+    # name: "nat"
+    name: "Mellanox ConnectX-3 Pro Ethernet Adapter #2 - Virtual Switch"
 
 ## Created first with 
 ##   docker volume create --name=postgres_database
