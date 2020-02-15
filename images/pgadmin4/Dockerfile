@@ -151,6 +151,10 @@ RUN Write-Host 'Configuring environment'; \
 
 WORKDIR /code
 
+COPY requirements.txt .
+RUN pip install -r requirements.txt ; \
+    cp -r -Force C:\Python\Lib\site-packages\werkzeug* 'C:\\pgsql\\pgAdmin 4\\venv\\Lib\\site-packages\\' ;
+
 # RUN setx /M PATH ( '{0};{1};{2};{3};{4};{5}' -f ( 'C:\\Python', 'C:\\Python\\include', 'C:\\pgsql\pgAdmin 4\\venv\\Scripts', 'C:\\pgsql\pgAdmin 4\\venv', 'C:\\Apache24\\bin', $env:PATH ) )
 RUN setx /M PATH ( '{0};{1};{2};{3}' -f ( 'C:\\pgsql\pgAdmin 4\\venv\\Scripts', 'C:\\pgsql\pgAdmin 4\\venv', 'C:\\Apache24\\bin', $env:PATH ) )
 # RUN setx /M PYTHONPATH ( '{0};{1}' -f ( 'C:\\pgsql\\pgAdmin 4\\venv\\Lib\\site-packages', ( python -c 'import sys; print(chr(59).join(x for x in sys.path if x))') ) )

@@ -12,7 +12,6 @@ services:
       - 5432:5432
     volumes:
       - postgres_database:C:\pgsql\data
-      # - S:\virtual_machines\containers\postgres:C:\pgsql\data
     hostname: pg
     mac_address: "4E:00:00:00:00:20"
     healthcheck:
@@ -20,29 +19,6 @@ services:
         interval: 30s
         timeout: 5s
         retries: 5
-#   postgres-old:
-#     restart: always
-#     image: ehiller/postgresql
-#     # build:
-#     #   context: ./images/postgresql
-#     #   labels:
-#     #     - "pro.hiller.description=PostgreSQL on Windows with Volume; works with Windows Server 2019"
-#     env_file: ./env/postgres.env
-#     ports:
-#       - 5432:5432
-#     volumes:
-#       - postgres_database:C:\pgsql\data
-#       # - S:\virtual_machines\containers\postgres:C:\pgsql\data
-#     hostname: pg-old
-#     mac_address: "4E:00:00:00:00:22"
-#     # storage_opt:
-#     #   size: '125GB'
-#     # volumes:
-#     #   - postgres_database:C:/sql:rw
-#       # - S:/virtual_machines/containers/postgresql:C:/sql:RW
-
-#     # links:
-#     # - pgadmin4
   pgadmin4:
     restart: always
     image: ehiller/pgadmin4
@@ -59,16 +35,6 @@ services:
     hostname: pgadmin
     env_file: ./env/pgadmin4.env
 
-# networks:
-  # default:
-    # driver: transparent
-#     driver_opts: 
-#       com.docker.network.windowsshim.interface: "Ethernet 2"
-      # gateway: ${NETWORK_GATEWAY}
-    # enable_ipv6: false
-    # ipam:
-    #   config:
-    #   - subnet: ${NETWORK_V4}
 networks:
  default:
   external:

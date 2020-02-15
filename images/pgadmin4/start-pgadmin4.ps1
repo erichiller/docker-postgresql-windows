@@ -42,7 +42,6 @@ if ( -not (  (Get-Content $env:APACHE_CONFIG ) -like '*Directory C:/pgsql/pgAdmi
     }
     Add-Content -Path $env:APACHE_CONFIG -Value @"
 
-
 LogFormat "%h %l %u %t %r    %b %{Referer}i %{User-agent}i" combined
 CustomLog C:/data/apache/logs/combined.log combined
 
@@ -93,11 +92,17 @@ Set-Content -Path $env:PGADMIN_CONFIG_PATH -Value @"
 # sample config & documenation :
 # https://www.pgadmin.org/docs/pgadmin4/latest/config_py.html
 
+import logging
+
+
+
 SERVER_MODE = True
 X_FRAME_OPTIONS = ""
 
 DATA_DIR = "$env:PGADMIN_DATA_DIR"
 
+# logging
+# https://www.pgadmin.org/faq/#8
 CONSOLE_LOG_LEVEL = logging.INFO # or DEBUG ?
 LOG_FILE = "$(join-path $env:PGADMIN_DATA_DIR 'pgadmin4.log')"
 
