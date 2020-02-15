@@ -6,12 +6,13 @@ FROM mcr.microsoft.com/windows/servercore:ltsc2019
 
 
 LABEL maintainer="eric@hiller.pro"
-
 # Set the variables for EnterpriseDB
-ENV EDB_VER 11.5-1
+# See available versions here : https://www.enterprisedb.com/download-postgresql-binaries
+ENV EDB_VER 12.1-3
 ENV EDB_REPO https://get.enterprisedb.com/postgresql
 
-RUN powershell [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 ; Invoke-WebRequest -Uri $('{0}/postgresql-{1}-windows-x64-binaries.zip' -f $env:EDB_REPO,$env:EDB_VER) -OutFile 'C:\\EnterpriseDB.zip'
+RUN powershell [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 ; `
+    Invoke-WebRequest -Uri $('{0}/postgresql-{1}-windows-x64-binaries.zip' -f $env:EDB_REPO,$env:EDB_VER) -OutFile 'C:\\EnterpriseDB.zip' ;
 RUN powershell Expand-Archive 'C:\\EnterpriseDB.zip'-Force -DestinationPath 'C:\\'
 RUN powershell Remove-Item -Path 'C:\\EnterpriseDB.zip'
 
@@ -37,7 +38,8 @@ ENV POSTGRES_USER postgres
 
 # <!----? TESTING ONLY ?----->
 
-RUN powershell [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 ; Invoke-WebRequest -Uri 'https://github.com/vim/vim-win32-installer/releases/download/v8.1.1568/gvim_8.1.1568_x64.zip' -OutFile 'C:\\vim.zip'
+RUN powershell [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 ; `
+    Invoke-WebRequest -Uri 'https://github.com/vim/vim-win32-installer/releases/download/v8.1.1568/gvim_8.1.1568_x64.zip' -OutFile 'C:\\vim.zip' ;
 RUN powershell -Command `
     Expand-Archive 'C:\\vim.zip'-Force -DestinationPath 'C:\\vim' ; `
     ls C:\\ ; `

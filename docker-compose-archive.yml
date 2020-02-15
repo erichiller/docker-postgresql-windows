@@ -3,10 +3,10 @@ services:
   postgres:
     restart: always
     image: ehiller/postgresql
-    # build:
-    #   context: ./images/postgresql
-    #   labels:
-    #     - "pro.hiller.description=PostgreSQL on Windows with Volume; works with Windows Server 2019"
+    build:
+      context: ./images/postgresql
+      labels:
+        - "pro.hiller.description=PostgreSQL on Windows with Volume; works with Windows Server 2016"
     env_file: ./env/postgres.env
     ports:
       - 5432:5432
@@ -15,41 +15,21 @@ services:
       # - S:\virtual_machines\containers\postgres:C:\pgsql\data
     hostname: pg
     mac_address: "4E:00:00:00:00:20"
-    healthcheck:
-        test: ["CMD-SHELL", "pg_isready -U postgres"]
-        interval: 30s
-        timeout: 5s
-        retries: 5
-#   postgres-old:
-#     restart: always
-#     image: ehiller/postgresql
-#     # build:
-#     #   context: ./images/postgresql
-#     #   labels:
-#     #     - "pro.hiller.description=PostgreSQL on Windows with Volume; works with Windows Server 2019"
-#     env_file: ./env/postgres.env
-#     ports:
-#       - 5432:5432
-#     volumes:
-#       - postgres_database:C:\pgsql\data
-#       # - S:\virtual_machines\containers\postgres:C:\pgsql\data
-#     hostname: pg-old
-#     mac_address: "4E:00:00:00:00:22"
-#     # storage_opt:
-#     #   size: '125GB'
-#     # volumes:
-#     #   - postgres_database:C:/sql:rw
-#       # - S:/virtual_machines/containers/postgresql:C:/sql:RW
+    # storage_opt:
+    #   size: '125GB'
+    # volumes:
+    #   - postgres_database:C:/sql:rw
+      # - S:/virtual_machines/containers/postgresql:C:/sql:RW
 
-#     # links:
-#     # - pgadmin4
+    # links:
+    # - pgadmin4
   pgadmin4:
     restart: always
     image: ehiller/pgadmin4
     build:
       context: ./images/pgadmin4
       labels:
-        - "pro.hiller.description=pgAdmin 4 on Windows; works with Windows Server 2019"
+        - "pro.hiller.description=pgAdmin 4 on Windows; works with Windows Server 2016"
     volumes:
       - pgadmin4:C:\data
     ports:
