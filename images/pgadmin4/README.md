@@ -17,3 +17,20 @@ Uses:
 [pip wheel for pgAdmin4](https://www.postgresql.org/ftp/pgadmin/pgadmin4/v4.9/pip/)
 
 [pgAdmin4 docs for server configuration](https://www.pgadmin.org/docs/pgadmin4/4.x/server_deployment.html)
+
+
+
+
+app name (probably the title bar)
+Environmental Variable: `PGADMIN_CONFIG_APP_NAME`
+
+Container Deployment
+
+https://www.pgadmin.org/docs/pgadmin4/latest/container_deployment.html
+
+reverse proxy, set headers
+https://www.pgadmin.org/docs/pgadmin4/latest/container_deployment.html#pgadmin-x-forwarded-configuration
+
+
+LDAP
+https://www.pgadmin.org/docs/pgadmin4/latest/enabling_ldap_authentication.html

@@ -1,5 +1,6 @@
 # Dockerized PostgreSQL for Windows (Server 2019)
 
+See the _PostgreSQL_ markdown file in Knowledge Base for more info.
 
 ## Running additional scripts at first run
 

@@ -1,7 +1,8 @@
 ####
 #### Download and prepare PostgreSQL for Windows
 ####
-FROM mcr.microsoft.com/windows/servercore:ltsc2019
+# FROM mcr.microsoft.com/windows/servercore:ltsc2019
+FROM python
 
 LABEL maintainer="eric@hiller.pro"
 
@@ -9,7 +10,7 @@ SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPref
 
 # Set the variables for EnterpriseDB
 # see https://www.enterprisedb.com/edb-docs
-ENV EDB_VER 12.2-1
+ARG EDB_VER
 ENV EDB_REPO https://get.enterprisedb.com/postgresql
 
 RUN [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 ; Invoke-WebRequest -Uri $('{0}/postgresql-{1}-windows-x64-binaries.zip' -f $env:EDB_REPO,$env:EDB_VER) -OutFile 'C:\\EnterpriseDB.zip'
@@ -38,69 +39,6 @@ RUN Expand-Archive 'C:\\vim.zip'-Force -DestinationPath /vim
 
 RUN setx /M PATH ( '{0};{1};{2}' -f ( 'C:\\pgsql\\bin', 'C:\\vim\\vim\\vim81', $env:PATH ) )
 
-# COPY docker-entrypoint.cmd /
-# COPY docker-run.ps1 /
-# COPY docker-entrypoint-initdb.d/ /docker-entrypoint-initdb.d/
-# ENTRYPOINT ["C:\\docker-entrypoint.cmd"]
-
-
-
-
-
-
-
-
-ENV PYTHON_VERSION 3.7.4
-ENV PYTHON_RELEASE 3.7.4
-
-RUN $url = ('https://www.python.org/ftp/python/{0}/python-{1}-amd64.exe' -f $env:PYTHON_RELEASE, $env:PYTHON_VERSION); \
-	Write-Host ('Downloading {0} ...' -f $url); \
-	[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
-	Invoke-WebRequest -Uri $url -OutFile 'python.exe'; \
-	\
-	Write-Host 'Installing ...'; \
-# https://docs.python.org/3.5/using/windows.html#installing-without-ui
-	Start-Process python.exe -Wait \
-		-ArgumentList @( \
-			'/quiet', \
-			'InstallAllUsers=1', \
-			'TargetDir=C:\Python', \
-			'PrependPath=1', \
-			'Shortcuts=0', \
-			'Include_doc=0', \
-			'Include_pip=0', \
-			'Include_test=0' \
-		); \
-	\
-# the installer updated PATH, so we should refresh our local value
-	$env:PATH = [Environment]::GetEnvironmentVariable('PATH', [EnvironmentVariableTarget]::Machine); \
-	\
-	Write-Host 'Verifying install ...'; \
-	Write-Host '  python --version'; python --version; \
-	\
-	Write-Host 'Removing ...'; \
-	Remove-Item python.exe -Force; \
-	\
-	Write-Host 'Complete.';
-
-# if this is called "PIP_VERSION", pip explodes with "ValueError: invalid truth value '<VERSION>'"
-ENV PYTHON_PIP_VERSION 19.3.1
-
-RUN Write-Host ('Installing pip=={0} ...' -f $env:PYTHON_PIP_VERSION); \
-	[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
-	Invoke-WebRequest -Uri 'https://bootstrap.pypa.io/get-pip.py' -OutFile 'get-pip.py'; \
-	python get-pip.py \
-		--disable-pip-version-check \
-		--no-cache-dir \
-		('pip=={0}' -f $env:PYTHON_PIP_VERSION) \
-	; \
-	Remove-Item get-pip.py -Force; \
-	\
-	Write-Host 'Verifying pip install ...'; \
-	pip --version; \
-	\
-	Write-Host 'Complete.';
-
 # This is the email address used when setting up the initial administrator account to login to pgAdmin. This variable is required and must be set at launch time.
 ENV PGADMIN_DEFAULT_EMAIL ""
 
@@ -118,6 +56,8 @@ ENV PGADMIN_LISTEN_ADDRESS 0.0.0.0
 ENV THREADS 25
 
 ENV HOSTNAME pgadmin4.local
+
+
 
 
 RUN Write-Information 'Install apache web server...' ; \
@@ -149,43 +89,17 @@ RUN Write-Host 'Configuring environment'; \
   } ; \
 	popd
 
-WORKDIR /code
-
-COPY requirements.txt .
-RUN pip install -r requirements.txt ; \
-    cp -r -Force C:\Python\Lib\site-packages\werkzeug* 'C:\\pgsql\\pgAdmin 4\\venv\\Lib\\site-packages\\' ;
-
-# RUN setx /M PATH ( '{0};{1};{2};{3};{4};{5}' -f ( 'C:\\Python', 'C:\\Python\\include', 'C:\\pgsql\pgAdmin 4\\venv\\Scripts', 'C:\\pgsql\pgAdmin 4\\venv', 'C:\\Apache24\\bin', $env:PATH ) )
-RUN setx /M PATH ( '{0};{1};{2};{3}' -f ( 'C:\\pgsql\pgAdmin 4\\venv\\Scripts', 'C:\\pgsql\pgAdmin 4\\venv', 'C:\\Apache24\\bin', $env:PATH ) )
-# RUN setx /M PYTHONPATH ( '{0};{1}' -f ( 'C:\\pgsql\\pgAdmin 4\\venv\\Lib\\site-packages', ( python -c 'import sys; print(chr(59).join(x for x in sys.path if x))') ) )
-
-
-# RUN pip install mod-wsgi ; \
-#     ls C:\Python; \
-#     ls C:\Python\Scripts; \
-#     Add-Content -Path C:\Apache24\conf\httpd.conf -Value (C:\Python\Scripts\mod_wsgi-express module-config) ;
-    
-# RUN pip install https://download.lfd.uci.edu/pythonlibs/t4jqbe6o/mod_wsgi-4.6.7+ap24vc15-cp37-cp37m-win_amd64.whl ; \
-#     Add-Content -Path C:\Apache24\conf\httpd.conf -Value (mod_wsgi-express module-config) ;
-    
-
 WORKDIR /Apache24/bin
 
-ENV PGADMIN_CONFIG_PATH C:/pgsql/pgAdmin 4/web/config_local.py
+ENV PGADMIN_CONFIG_PATH C:/Python/lib/site-packages/pgadmin4/config_local.py
 ENV PGADMIN_DATA_DIR C:/data/pgadmin4
 ENV PGADMIN_SERVER_JSON_FILE C:/data/pgadmin4/servers.json
-
-# RUN touch $env:PGADMIN_CONFIG_PATH
-
-# RUN mkdir $env:PGADMIN_DATA_DIR
-
-# RUN pip install flask flask_login flask_babelex virtualenv virtualenvwrapper psycopg2 Flask-Mail
 
 
 COPY start-pgadmin4.ps1 /
 
+
 EXPOSE $PGADMIN_LISTEN_PORT
-# CMD ["powershell", "C:\\docker-start.ps1"]
 CMD [ "powershell" , "C:\\start-pgadmin4.ps1"]
 
 
