@@ -1,7 +1,8 @@
 # docker container rm -f elasticsearch ; docker image build .\elasticsearch\ -t ehiller/elasticsearch:latest -t ehiller/elasticsearch-windows:latest -t ehiller/elasticsearch-windows:7.2.0; docker run -p 9200:9200 -p 9300:9300 -e "discovery_type=single-node" -v /s/virtual_machines/containers/elasticsearch:/data --name elasticsearch ehiller/elasticsearch:latest
 
 
-$NAME="pgadmin"
+$NAME = "postgresql"
+$DOCKER_USER="ehiller"
 $EDB_VER = "13.2-1"
 # Get the SHA from the downloads page
 
@@ -12,9 +13,10 @@ Push-Location $PSScriptRoot
 # docker container rm -f $NAME
 
 docker image build $PSScriptRoot `
-    -t ehiller/${NAME}:latest `
-    -t ehiller/$NAME-windows:latest `
-    -t ehiller/${NAME}-windows:${EDB_VER} `
+    -t $DOCKER_USER/${NAME}:latest `
+    -t $DOCKER_USER/${NAME}-windows:latest `
+    -t $DOCKER_USER/${NAME}-windows:${EDB_VER} `
+    -t $DOCKER_USER/${NAME}:$(Get-Date -format "yyMMdd_HHmmss" ) `
     --build-arg EDB_VER=$EDB_VER `
     # --no-cache `
     ;

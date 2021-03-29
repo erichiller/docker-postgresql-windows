@@ -2,11 +2,7 @@ version: '3.6'
 services:
   postgres:
     restart: always
-    image: ehiller/postgresql
-    build:
-      context: ./images/postgresql
-      labels:
-        - "pro.hiller.description=PostgreSQL on Windows with Volume; works with Windows Server 2019"
+    image: ehiller/postgresql:latest
     env_file: ./env/postgres.env
     ports:
       - 5432:5432
@@ -22,19 +18,13 @@ services:
   pgadmin4:
     restart: unless-stopped
     image: ehiller/pgadmin:latest
-    # image: ehiller/pgadmin4
-    # build:
-    #   context: ./images/pgadmin4
-    #   labels:
-    #     - "pro.hiller.description=pgAdmin 4 on Windows; works with Windows Server 2019"
     volumes:
       - pgadmin4:C:\data
     ports:
       - 80
-      # - 8081:80
     mac_address: "4E:00:00:00:00:21"
     hostname: pgadmin
-    env_file: ./env/pgadmin4.env
+    env_file: ./env/pgadmin.env
     # healthcheck is in the Dockerfile
 
 networks:
